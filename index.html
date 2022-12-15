@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineSweeper</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            user-select: none;
+        }
+        div {
+            font-size: 10px;
+            text-align: center;
+            border: 1px solid seashell;
+        }
+        button {
+            text-align: center;
+            font-size: 10px;
+        }
+        .board {
+            border: none;
+            position: absolute;
+            /* filter: blur(5px); */
+        }
+        .gameArea {
+            width: 100px;
+            height: 130px;
+            background-color: gray;
+            position: absolute;
+            font-size: 25px;
+            /* filter: blur(5px); */
+
+        }
+        .winScreen {
+            background-color: rgb(182, 201, 13);
+            color: rgb(82, 10, 10);
+            position: absolute;
+            width: 600px;
+            height: 300px;
+            bottom: 100vh;
+            right: 100vw;
+            /* transform: rotate(180deg); */
+            border-color: navy;
+        }
+        .sq {
+            font-size: 15px;
+        }
+      .but {
+        font-size: 15px;
+      }
+        h1 {
+            font-size: 50px;
+        }
+        h6 {
+            font-size: 25px;
+        }
+        .winButton {
+            font-size: 30px;
+            padding: 10px;
+        }
+        .menu {
+            height: 50px;
+            position: absolute;
+            background-color: rgb(40, 41, 37);
+            color:aqua;
+            text-align: center;
+            font-size: 30px;
+            line-height: 50px;
+            cursor: pointer;
+        }
+        .gamemenu {
+            position: absolute;
+            top:-512px;
+            width: 350px;
+            height: 470px;
+            color: white;
+            font-size: 25px;
+            padding-top: 10px;
+            background-color: black;
+        }
+        .mode {
+            font-size: 17.5px;
+        }
+        .line {
+            height: 1px;
+            width: 100%;
+            /* position: relative;
+            top: 25px; */
+            background-color: white;
+            border: none;
+        }
+        .pauseScreen {
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            position: absolute;
+            border: none;
+            display: none;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false">
+    <div class="menu" onclick="GameMenuOpen()" title="Access The Menu">Menu</div>
+    <div class="gameArea">
+        Time: <time>0</time><br>
+        💣 Marked: <nBombs>0</nBombs><br>
+        💣 Left: <nBombsleft></nBombsleft><br>
+      <button class="mode" onclick="Mark()" id="m1">Mark</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class = "winScreen">
+        <h1>You Won!</h1>
+        <h6>You finished the game in <span id="game-time"></span> seconds</h6>
+        <button onclick="Close()" class="winButton">Close</button>
+    </div>
+    <button onclick="newGame()" class="winButton" id="loseButton" style="position: absolute; display: none;">Play again</button>
+    <div class="gamemenu">
+        Difficulty:<br>
+        <button class="mode" onclick="changeMode('B')">Beginner</button>
+        <button class="mode" onclick="changeMode('M')">Medium</button>
+        <button class="mode" onclick="changeMode('H')">Hard</button>
+        <br>
+        <br>
+        <div class="line" style="border-bottom: 8px solid black;"></div>
+        <button class="mode" onclick="pause()">Pause Game</button>
+        <br>
+        <div class="line" style="border-top: 10px solid black;"></div>
+        <button class="mode" onclick="ResetStats()">Reset Stats</button><br>
+        Stats for <mode></mode>: <br>
+        Average time: <avTime></avTime><br>
+        Total time: <totTime></totTime><br>
+        Fastest time: <Ftime></Ftime><br>
+        Games Played: <gamePlayed></gamePlayed><br>
+        Games won: <WonGames></WonGames><br>
+        Games lost: <LostGames></LostGames><br>
+        Percentage: <percentage></percentage><br>
+        <button class="mode" onclick="closeMenu()">Close Menu</button>
+        
+        
+        
+    </div>
+    <div class="pauseScreen">
+        <br><br><br><br><br><br><br>
+        <button style="font-size: 25px; padding: 25px;" onclick="unpause()">Unpause game</button>
+    </div>
+</body>
+<script src="setup.js"></script>
+<script src="graphics2.js"></script>
+
+<script>
+    
+    
+var menuScreenOpen = false; 
+var GameMode = localStorage.getItem("GameMode");
+var game;
+if(GameMode == null) {game = Newgame(10, 10, 10, "B"); localStorage.setItem("GameMode", "B");}
+else if(GameMode == "B") {game = Newgame(10, 10, 10, "B");}
+else if(GameMode == "M") {game = Newgame(16, 16, 40, "M");}
+else if(GameMode == "H") {game = Newgame(30, 16, 99, "H");}
+
+var BoardArray = setup(game);
+SetUpBoard();
+update();
+setInterval(update, 50);
+setInterval(updateTime, 1000);
+updateMenu();
+
+
+var i = 0;
+var j = 10;
+function update() {
+    var w = window.innerWidth;
+    var BoardWidth = renderer.Squaresize * game.length;
+    var BoardHeight = renderer.Squaresize * game.height;
+    var h = window.innerHeight;
+
+    if (menuScreenOpen === true) {
+        if (j < 25) {
+            
+            var menu = document.querySelector(".gamemenu");
+            menu.style.left = w/2 - 175 + "px";
+            j += 1.5
+            menu.style.top = j * j - 512 + "px";
+            // menu.style.top = (j/10 * h/18)/2 - 150 + "px";
+
+        }
+    }
+
+    document.querySelector(".board").style.left = w/2 - BoardWidth/2 + "px";
+    document.querySelector(".gameArea").style.left = w/2 - BoardWidth/2 + "px";
+    document.querySelector(".gameArea").style.top = "50px";
+    document.querySelector(".board").style.top = "182px";
+    document.querySelector(".menu").style.left = w/2 - BoardWidth/2 + "px";
+    document.querySelector(".gameArea").style.width = BoardWidth + "px";
+    document.querySelector(".menu").style.width = BoardWidth + "px";
+    document.querySelector("nBombs").innerHTML = numMarkedSquares;
+    document.querySelector("nBombsleft").innerHTML = game.numBombs - numMarkedSquares;
+    //-----------
+    if (game.gameWon === true) {
+        var winBox = document.querySelector(".winScreen");
+        if (i < 180) {
+            i += 10;
+            winBox.style.transform = "rotate(" + i + 360 + "deg)";
+            winBox.style.left = (i/10 * w/18)/2 - 300 + "px";
+            winBox.style.top = (i/10 * h/18)/2 - 150 + "px";
+
+        }
+    }
+    else if(game.gameWon === false) {
+        document.querySelector("#loseButton").style.left = w/2 - 80 + "px";
+        document.querySelector("#loseButton").style.top = BoardHeight + 182 + "px";
+    }
+    // document.querySelector(".board").style.top = "50px";
+}
+
+function updateTime() {
+    if (!game.gameOver && game.gameStarted) {
+        game.time++;
+        document.querySelector("time").innerHTML = game.time;
+    }
+}
+
+function pause() {
+    if(game.gameStarted) {
+        game.gameStarted = false;
+        document.querySelector(".pauseScreen").style.display = "block";
+    }
+}
+
+function unpause() {
+    game.gameStarted = true;
+    document.querySelector(".pauseScreen").style.display = "none";
+
+}
+
+function changeMode(NewMode) {
+    localStorage.setItem("GameMode", NewMode);
+    newGame();
+}
+
+function newGame() {
+    location.reload();
+}
+
+function updateMenu() {
+    var mode;
+    if(game.gameMode == "B"){mode = "Beginner"}
+    if(game.gameMode == "M"){mode = "Medium"}
+    if(game.gameMode == "H"){mode = "Hard"}
+    document.querySelector("mode").innerHTML = mode;
+
+    var winCount = localStorage.getItem(game.gameMode + "-WinCount");
+    var Completedgames = localStorage.getItem(game.gameMode + "-CompletedGames");
+    var totalTime = localStorage.getItem(game.gameMode + "-TotalTime");
+    var fastestTime = localStorage.getItem(game.gameMode + "-FastestTime");
+    var totalWinTime = localStorage.getItem(game.gameMode + "-TotalWinTime");
+
+    var tempTime = parseInt(totalTime);
+    var totalhours = 0;
+    var totalmins = 0;
+    var totalsecs = 0;
+
+    var tempWintime = Math.round(parseInt(totalWinTime)/parseInt(winCount));
+    var totalWinMins = 0;
+    var totalWinSecs = 0;
+
+    var tempfastestime = parseInt(fastestTime);
+    var fastestMins = 0;
+    var fastestSecs = 0;
+
+    if(60 < tempWintime) {totalWinMins = Math.floor(tempWintime / 60);}
+    tempWintime -= totalWinMins * 60;
+    totalWinSecs = tempWintime;
+    if(totalWinSecs < 10) {totalWinSecs = "0" + totalWinSecs}
+
+    if(3600 < tempTime) {totalhours = Math.floor(tempTime / 3600);}
+    tempTime -= totalhours * 3600;
+    if(60 < tempTime) {totalmins = Math.floor(tempTime / 60);}
+    tempTime -= totalmins * 60;
+    totalsecs = tempTime;
+    if(totalsecs < 10) {totalsecs = "0" + totalsecs}
+
+    if(60 < tempfastestime) {fastestMins = Math.floor(tempfastestime / 60);}
+    tempfastestime -= fastestMins * 60;
+    fastestSecs = tempfastestime;
+    if(fastestSecs < 10) {fastestSecs = "0" + fastestSecs}
+
+    document.querySelector("totTime").innerHTML = totalhours + ":" + totalmins + ":" + totalsecs;
+    document.querySelector("avTime").innerHTML = totalWinMins + ":" + totalWinSecs;
+    document.querySelector("Ftime").innerHTML = fastestMins + ":" + fastestSecs;
+    document.querySelector("gamePlayed").innerHTML = Completedgames;
+    document.querySelector("WonGames").innerHTML = winCount;
+    document.querySelector("LostGames").innerHTML = Completedgames - winCount;
+    document.querySelector("percentage").innerHTML = Math.round(winCount/Completedgames * 100) + "%";
+
+}
+
+var MarkingOn = false;
+function Mark() {
+    if (MarkingOn == false) {
+        document.querySelector("#m1").style.backgroundColor = "red";
+        MarkingOn = true;
+    }
+    else {
+        document.querySelector("#m1").style.backgroundColor = '';
+        MarkingOn = false;
+    }
+}
+
+function GameMenuOpen() {
+    menuScreenOpen = true;
+}
+
+function closeMenu() {
+    menuScreenOpen = false;
+    j = 0;
+    document.querySelector(".gamemenu").style.top = "-512px";
+}
+
+function Close() {
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var BoardWidth = renderer.Squaresize * game.length;
+  var BoardHeight = renderer.Squaresize * game.height;
+  document.querySelector(".winScreen").style.display = "none";
+  document.querySelector("#loseButton").style.display = "block";
+  document.querySelector("#loseButton").style.left = w/2 - 80 + "px";
+  document.querySelector("#loseButton").style.top = BoardHeight + 182 + "px";
+}
+
+function ResetStats() {
+  localStorage.removeItem(game.gameMode + "-WinCount");
+  localStorage.removeItem(game.gameMode + "-CompletedGames");
+  localStorage.removeItem(game.gameMode + "-TotalTime");
+  localStorage.removeItem(game.gameMode + "-FastestTime");
+  localStorage.removeItem(game.gameMode + "-TotalWinTime");
+  updateMenu();
+}
+
+</script>
+</html>
